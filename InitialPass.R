@@ -6,12 +6,12 @@ baseRE <- read.csv('Data/Real_Estate_Base_Data.csv', stringsAsFactors = FALSE)
 baseRE <- baseRE %>%
   select(StreetNumber, StreetName, Unit, StateCode, GPIN, Zone, ParcelNumber, Acreage) %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
-         StreetName = trimws(toupper(gsub("[^A-Z ]", "", StreetName))))
+         StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName))))
 
 resRE <- read.csv('Data/Real_Estate_Residential_Details.csv', stringsAsFactors = FALSE)
 resRE <- resRE %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
-         StreetName = trimws(toupper(gsub("[^A-Z ]", "", StreetName)))) %>%
+         StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName)))) %>%
   select(ParcelNumber, UseCode, Style, Grade, Roof, Heating, Fireplace, YearBuilt, TotalRooms, Bedrooms, 
          FullBathrooms, BasementGarage, Basement, FinishedBasement, BasementType, ExternalWalls, 
          NumberOfStories, SquareFootageFinishedLiving, resStreetName = StreetName, resStreetNumber = StreetNumber, 
@@ -20,7 +20,7 @@ resRE <- resRE %>%
 commRE <- read.csv('Data/Real_Estate_Commercial_Details.csv', stringsAsFactors = FALSE)
 commRE <- commRE %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
-         StreetName = trimws(toupper(gsub("[^A-Z ]", "", StreetName)))) %>%
+         StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName)))) %>%
   select(ParcelNumber, UseCode, YearBuilt, GrossArea, StoryHeight, NumberOfStories, commStreetName = StreetName, 
          commStreetNumber = StreetNumber, commUnit = Unit)
 
@@ -42,14 +42,14 @@ areaPAR <- areaPAR %>%
   select(FileType, LotSquareFeet, TaxYear, Zoning, Assessment, 
          GPIN = GeoParcelIdentificationNumber, ParcelNumber, StreetNumber, StreetName, Unit) %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
-         StreetName = trimws(toupper(gsub("[^A-Z ]", "", StreetName))))
+         StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName))))
 
 pointsPAR <- read.csv('Data/Parcel_Owner_Points.csv', stringsAsFactors = FALSE)
 pointsPAR <- pointsPAR %>%
   select(X, Y, GPIN = GeoParcelIdentificationNumber, OwnerName, ParcelNumber, StreetNumber, StreetName,
          Unit, ZipCode, Zone) %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
-         StreetName = trimws(toupper(gsub("[^A-Z ]", "", StreetName))))
+         StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName))))
 
 PAR <- join_all(list(areaPAR, pointsPAR), by = c("ParcelNumber", "GPIN"), type = "full", match = "first") %>%
   distinct()
@@ -64,12 +64,14 @@ existSTR <- read.csv('Data/Existing_Structure_Area.csv', stringsAsFactors = FALS
 existSTR <- existSTR %>%
   select(BIN, StreetNumber = ST_NUMBER, StreetName = STREET) %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
-         StreetName = trimws(toupper(gsub("[^A-Z ]", "", StreetName))))
+         StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName))))
 
 ##Let's get wild
 
 mainOut <- join_all(list(RE, PAR), by = "ParcelNumber", type ="full", match = "first")
 mainOut <- join_all(list(mainOut, existSTR), by = c("StreetNumber", "StreetName"), type = "left", match = "first") %>%
   distinct()
+
+mainOut %>% count(StreetNumber, StreetName, Unit, ParcelNumber) %>% View()
   
-write.csv(mainOut, "Data/Output.csv", row.names = FALSE)
+# write.csv(mainOut, "Data/Output.csv", row.names = FALSE)
