@@ -44,12 +44,13 @@ for (i in 1:nrow(clean)){
 }
 ranges<- ranges[complete.cases(ranges), ]
 
-baseRE <- join_all(list(baseRE, ranges), by = "StreetNumber")
+baseRE <- join_all(list(baseRE, ranges), by = "StreetNumber") %>%
+  mutate(OrigStreetNumber = StreetNumber, RangeFlag = ifelse(!is.na(StreetNumberRange), "Yes", "No"))
 
 baseRE$StreetNumber <- ifelse(!is.na(baseRE$StreetNumberRange), baseRE$StreetNumberRange, baseRE$StreetNumber)
 
 baseRE <- baseRE %>%
-  select(StreetNumber, StreetName, Unit, StateCode, GPIN, Zone, ParcelNumber, Acreage) %>%
+  select(StreetNumber, StreetName, Unit, StateCode, GPIN, Zone, ParcelNumber, Acreage, OrigStreetNumber) %>%
   mutate(StreetNumber = gsub("[^0-9]", "", StreetNumber),
          StreetName = trimws(toupper(gsub("[^a-zA-Z0-9 ]", "", StreetName))),
          Index = row.names(.))
@@ -148,4 +149,4 @@ mainOut <- join_all(list(RE, PAR), by = "ParcelNumber", type ="full", match = "f
 #   summarise(Parcels = length(unique(ParcelNumber))) %>% 
 #   View()
   
-write.csv(mainOut, "Data/Output.csv", row.names = FALSE)
+# write.csv(mainOut, "Data/Output.csv", row.names = FALSE)
